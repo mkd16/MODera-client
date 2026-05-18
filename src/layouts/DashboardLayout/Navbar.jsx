@@ -4,18 +4,28 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { setAccessToken } from "../../utils/accessTokenManager";
 import { logout } from "../../api/authApi.js";
+import { useState } from "react";
 
 export default function Navbar() {
     const navigate = useNavigate();
     const { authStatus, setAuthStatus, setCurrentUser } = useAuth();
+    const [loading, setLoading] = useState(false)
 
     const logoutUser = async () => {
-        const res = await logout();
-        setAuthStatus('unauthenticated');
-        console.log('logiout', null)
-        setAccessToken(null);
-        setCurrentUser(null);
-        navigate('/login');
+        try {
+            setLoading(true)
+            const res = await logout();
+            if (res && res.success) {
+                setAuthStatus('unauthenticated');
+                setAccessToken(null);
+                setCurrentUser(null);
+                navigate('/login');
+            }
+        } catch (error) {
+            console.error("Logout failed", error);
+        } finally {
+            setLoading(false)
+        }
     }
     return (
         <nav className="yt-navbar">

@@ -54,7 +54,6 @@ export default function Login() {
             if (res && res.success) {
                 setAuthStatus("authenticated")
                 setCurrentUser(res.data)
-                console.log('login token:::', res.data.accessToken)
                 setAccessToken(res.data.accessToken)
                 setLoginError("")
                 setName("")
@@ -62,19 +61,16 @@ export default function Login() {
                 setEmail("")
                 setPassword("")
                 navigate("/")
-            } else {
-                setLoginError("Login credentials are incorrect. Please try again.")
-                setAuthStatus("unauthenticated")
-                setCurrentUser(null)
-                console.log('login token::: set null')
-                setAccessToken(null)
             }
         } catch (error) {
             console.log('login error:::', error)
-            setLoginError('some error')
+            if (error.status < 500) {
+                setLoginError(error.response.data.message)
+            } else {
+                setLoginError('Internal Server Error. Please try again later.')
+            }
             setAuthStatus("unauthenticated")
             setCurrentUser(null)
-            console.log('login token:::  set null catch')
             setAccessToken(null)
         } finally {
             setLoading(false)
@@ -101,7 +97,6 @@ export default function Login() {
             if (res && res.success) {
                 setAuthStatus("authenticated")
                 setCurrentUser(res.data)
-                console.log('register token:::', res.data.accessToken)
                 setAccessToken(res.data.accessToken)
                 setLoginError("")
                 setName("")
@@ -109,19 +104,15 @@ export default function Login() {
                 setEmail("")
                 setPassword("")
                 navigate("/")
-            } else {
-                setLoginError('some error')
-                setAuthStatus("unauthenticated")
-                setCurrentUser(null)
-                console.log('register token:::  set null')
-                setAccessToken(null)
             }
         } catch (error) {
-            console.log('register error:::', error)
-            setLoginError('some error')
+            if (error.status < 500) {
+                setLoginError(error.response.data.message)
+            } else {
+                setLoginError('Internal Server Error. Please try again later.')
+            }
             setAuthStatus("unauthenticated")
             setCurrentUser(null)
-            console.log('register token:::  set null catch')
             setAccessToken(null)
         } finally {
             setLoading(false)

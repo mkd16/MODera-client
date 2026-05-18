@@ -14,18 +14,11 @@ export function AuthProvider({ children }) {
                 const res = await refreshToken();
                 if (res && res.success) {
                     setCurrentUser(res.data.user)
-                    console.log('refresh::::', res.data.accessToken)
                     setAccessToken(res.data.accessToken)
                     setAuthStatus('authenticated')
-                } else {
-                    setCurrentUser(null)
-                    console.log('refresh ::: set null')
-                    setAccessToken(null)
-                    setAuthStatus('unauthenticated');
                 }
             } catch (error) {
                 setCurrentUser(null)
-                console.log('refresh ::: set null catch')
                 setAccessToken(null)
                 setAuthStatus('unauthenticated');
             }
