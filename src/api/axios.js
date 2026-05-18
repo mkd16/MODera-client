@@ -19,13 +19,9 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
     (response) => {
-        console.log(response, '++++++++++++++++++++++++++++++++')
         return response.data
     },
     (error) => {
-        console.log(error, '----------------------------------')
-        console.log(error.status)
-        console.log(error.response)
         throw error
     }
 )

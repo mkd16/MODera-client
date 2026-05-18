@@ -63,7 +63,6 @@ export default function Login() {
                 navigate("/")
             }
         } catch (error) {
-            console.log('login error:::', error)
             if (error.status < 500) {
                 setLoginError(error.response.data.message)
             } else {
@@ -91,8 +90,6 @@ export default function Login() {
         setLoading(true);
         try {
             const res = await register({username, password, name, email})
-            console.log(res)
-            console.log(res.data)
 
             if (res && res.success) {
                 setAuthStatus("authenticated")
