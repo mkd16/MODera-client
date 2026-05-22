@@ -1,10 +1,10 @@
-import axios from "axios";
 import { PlayIcon } from "../../components/icons/icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { setAccessToken } from "../../utils/accessTokenManager";
 import { logout } from "../../api/authApi.js";
 import { useState } from "react";
+import Spinner from "../../components/ui/Spinner";
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -29,6 +29,7 @@ export default function Navbar() {
     }
     return (
         <nav className="yt-navbar">
+            { loading && <Spinner/> }
             
             {/* ── Left section ─────────────── */}
             <div className="yt-navbar-left">

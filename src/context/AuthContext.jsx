@@ -16,6 +16,10 @@ export function AuthProvider({ children }) {
                     setCurrentUser(res.data.user)
                     setAccessToken(res.data.accessToken)
                     setAuthStatus('authenticated')
+                } else {
+                    setCurrentUser(null)
+                    setAccessToken(null)
+                    setAuthStatus('unauthenticated')
                 }
             } catch (error) {
                 setCurrentUser(null)
@@ -48,6 +52,6 @@ export function useAuth() {
     return context
 }
 
-// in custom hook declarations we can use other hooks 
+// in custom hook declarations we can use other hooks
 // otherwise we cannot use hook inside hook
 // like you cannot access useState in useEffect

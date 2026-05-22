@@ -3,22 +3,24 @@ import { ProtectedRoute, ProtectedLogin } from "./Auth";
 import Login from "../pages/LoginRegister";
 import Dashboard from "../pages/Dashboard";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
+import { Profile } from "../pages/Profile";
 
 export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
                 {/* Public routes */}
-                <Route element={<ProtectedLogin/>}>
+                <Route element={<ProtectedLogin />}>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Login/>} />
+                    <Route path="/register" element={<Login />} />
                 </Route>
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<DashboardLayout />}>
-                        <Route path="/" element={<Dashboard/>} />
+                        <Route path="/" element={<Dashboard />} />
                     </Route>
+                    <Route path="/profile" element={<Profile />} />
                 </Route>
             </Routes>
         </BrowserRouter>
