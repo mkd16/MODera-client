@@ -19,3 +19,7 @@ export function logout() {
 export function healthCheck() {
     return api.get("/health")
 }
+
+export function verifyOtp({ email, otp, url_token }) {
+    return api.post("/auth/verify", { email, otp, url_token })
+}

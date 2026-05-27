@@ -71,9 +71,9 @@ api.interceptors.response.use(
             }
         }
 
-        return {
-            message: error?.response?.data.message || "Something went wrong",
-            statusCode: error?.response?.status,
+        throw {
+            status: error?.response?.status,
+            message: error?.response?.data?.message || "Something went wrong",
         }
     }
 )

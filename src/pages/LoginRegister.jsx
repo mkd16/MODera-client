@@ -6,14 +6,14 @@ import { validateEmail, validateRequired } from "../utils/inputValidations.js";
 import { setAccessToken } from "../utils/accessTokenManager.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import Spinner from "../components/ui/Spinner.jsx";
+import { Spinner } from "../components/ui/Spinner.jsx";
 import { login, register } from "../api/authApi.js";
 
 export default function Login() {
     const navigate = useNavigate();
     const currentURL = useLocation();
     const loginPage = currentURL.pathname === "/login"
-    const { setAuthStatus, setCurrentUser } = useAuth()
+    const { setAuthStatus, setCurrentUser, currentUser } = useAuth()
 
     const [name, setName] = useState("");
     const [nameError, setNameError] = useState("");
@@ -44,27 +44,34 @@ export default function Login() {
         const errorPassword = validateRequired(password, "Password")
         setEmailError(errorEmail)
         setPasswordError(errorPassword)
-        if(errorEmail || errorPassword) return
+        if (errorEmail || errorPassword) return
 
         setLoading(true);
 
         try {
-            const res = await login({email, password})
+            const res = await login({ email, password })
 
             if (res && res.success) {
-                setAuthStatus("authenticated")
-                setCurrentUser(res.data)
-                setAccessToken(res.data.accessToken)
+                if (res?.data?.url_token) {
+                    setAuthStatus("unauthenticated")
+                    setCurrentUser(res?.data?.user)
+                    setAccessToken(null)
+                    navigate(`/verify/${res?.data?.url_token}`)
+                } else {
+                    setAuthStatus("authenticated")
+                    setCurrentUser(res?.data?.user)
+                    setAccessToken(res.data.accessToken)
+                    navigate("/")
+                }
                 setLoginError("")
                 setName("")
                 setUsername("")
                 setEmail("")
                 setPassword("")
-                navigate("/")
             }
         } catch (error) {
             if (error.status < 500) {
-                setLoginError(error.response.data.message)
+                setLoginError(error?.message)
             } else {
                 setLoginError('Internal Server Error. Please try again later.')
             }
@@ -85,26 +92,28 @@ export default function Login() {
         setPasswordError(errorPassword)
         setNameError(errorName)
         setUserNameError(errorUsername)
-        if(errorName || errorUsername || errorEmail || errorPassword) return
+        if (errorName || errorUsername || errorEmail || errorPassword) return
 
         setLoading(true);
         try {
-            const res = await register({username, password, name, email})
+            const res = await register({ username, password, name, email })
 
             if (res && res.success) {
-                setAuthStatus("authenticated")
-                setCurrentUser(res.data)
-                setAccessToken(res.data.accessToken)
                 setLoginError("")
                 setName("")
                 setUsername("")
                 setEmail("")
                 setPassword("")
-                navigate("/")
+                setCurrentUser(res?.data?.user)
+                if (res?.data && res.data?.url_token) {
+                    navigate(`/verify/${res?.data?.url_token}`)
+                } else {
+                    navigate('/login')
+                }
             }
         } catch (error) {
             if (error.status < 500) {
-                setLoginError(error.response.data.message)
+                setLoginError(error?.message)
             } else {
                 setLoginError('Internal Server Error. Please try again later.')
             }
@@ -118,7 +127,7 @@ export default function Login() {
 
     return (
         <>
-            { loading && <Spinner /> } 
+            {loading && <Spinner />}
 
             <div className="auth-wrapper">
 
@@ -158,8 +167,8 @@ export default function Login() {
 
                         {/* Heading */}
                         <div className="auth-heading">
-                            { loginPage ? (<h1>Welcome back! 👋</h1>) : (<h1>Welcome aboard! 🚀</h1>) }
-                            <p>Please { loginPage ? 'sign in to' : 'create ' } your account and start watching</p>
+                            {loginPage ? (<h1>Welcome back! 👋</h1>) : (<h1>Welcome aboard! 🚀</h1>)}
+                            <p>Please {loginPage ? 'sign in to' : 'create '} your account and start watching</p>
                         </div>
 
                         {/* Error banner */}
@@ -179,8 +188,8 @@ export default function Login() {
                             className="form-fields"
                             noValidate
                         >
-                            { !loginPage 
-                                && 
+                            {!loginPage
+                                &&
                                 <InputField
                                     label="Name"
                                     type="name"
@@ -195,8 +204,8 @@ export default function Login() {
                                 />
                             }
 
-                            { !loginPage 
-                                && 
+                            {!loginPage
+                                &&
                                 <InputField
                                     label="Username"
                                     type="username"
@@ -237,19 +246,19 @@ export default function Login() {
                             />
 
                             {/* Forgot password */}
-                            { loginPage ? (
+                            {loginPage ? (
                                 <div className="form-row">
                                     <Link to="/forgot-password" className="btn-ghost text-brand text-xs">
                                         Forgot Password?
                                     </Link>
                                 </div>
-                            ) : <div className="form-row"></div> }
+                            ) : <div className="form-row"></div>}
 
                             <button
                                 type="submit"
                                 className="btn btn--brand btn--md btn--full"
                             >
-                                { loginPage ? 'Sign In' : 'Sign Up'}
+                                {loginPage ? 'Sign In' : 'Sign Up'}
                             </button>
                         </form>
 
@@ -267,12 +276,12 @@ export default function Login() {
 
                         {/* Register link */}
                         <p className="auth-footer-text">
-                            { loginPage ? 'New on our platform?' : 'Already have an account?'}{" "}
-                            { loginPage 
-                                ? 
-                                <Link to='/register' className="text-brand" style={{ background: "none", border: "none", fontFamily: "inherit", fontWeight: 500 }}>{ 'Create an account' }</Link> 
-                                : 
-                                <Link to='/login' className="text-brand" style={{ background: "none", border: "none", fontFamily: "inherit", fontWeight: 500 }}>{ 'Sign In' }</Link>
+                            {loginPage ? 'New on our platform?' : 'Already have an account?'}{" "}
+                            {loginPage
+                                ?
+                                <Link to='/register' className="text-brand" style={{ background: "none", border: "none", fontFamily: "inherit", fontWeight: 500 }}>{'Create an account'}</Link>
+                                :
+                                <Link to='/login' className="text-brand" style={{ background: "none", border: "none", fontFamily: "inherit", fontWeight: 500 }}>{'Sign In'}</Link>
                             }
                         </p>
 
