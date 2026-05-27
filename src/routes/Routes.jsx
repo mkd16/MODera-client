@@ -4,6 +4,7 @@ import Login from "../pages/LoginRegister";
 import Dashboard from "../pages/Dashboard";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
 import { Profile } from "../pages/Profile";
+import OTPVerification from "../pages/OTPverification";
 
 export default function AppRoutes() {
     return (
@@ -13,6 +14,7 @@ export default function AppRoutes() {
                 <Route element={<ProtectedLogin />}>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Login />} />
+                    <Route path="/verify/:url_token" element={<OTPVerification />} />
                 </Route>
 
                 {/* Protected routes */}
