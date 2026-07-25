@@ -5,6 +5,7 @@ import { setAccessToken } from "../../utils/accessTokenManager";
 import { logout } from "../../api/authApi.js";
 import { useState } from "react";
 import { Spinner } from "../../components/ui/Spinner";
+import toast from "react-hot-toast";
 
 export default function Navbar() {
     const navigate = useNavigate();
@@ -19,10 +20,11 @@ export default function Navbar() {
                 setAuthStatus('unauthenticated');
                 setAccessToken(null);
                 setCurrentUser(null);
+                toast.success("Logged out successfully.")
                 navigate('/login');
             }
         } catch (error) {
-            console.error("Logout failed", error);
+            toast.error(error.message || "Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }

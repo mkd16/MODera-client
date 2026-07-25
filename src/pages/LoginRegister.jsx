@@ -8,12 +8,13 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Spinner } from "../components/ui/Spinner.jsx";
 import { login, register } from "../api/authApi.js";
+import toast from "react-hot-toast";
 
 export default function Login() {
     const navigate = useNavigate();
     const currentURL = useLocation();
     const loginPage = currentURL.pathname === "/login"
-    const { setAuthStatus, setCurrentUser, currentUser } = useAuth()
+    const { setAuthStatus, setCurrentUser } = useAuth()
 
     const [name, setName] = useState("");
     const [nameError, setNameError] = useState("");
@@ -52,15 +53,16 @@ export default function Login() {
             const res = await login({ email, password })
 
             if (res && res.success) {
-                if (res?.data?.url_token) {
+                if (!res?.data?.accessToken) {
                     setAuthStatus("unauthenticated")
-                    setCurrentUser(res?.data?.user)
                     setAccessToken(null)
-                    navigate(`/verify/${res?.data?.url_token}`)
+                    toast.success("Success! Check your email for verification OTP.")
+                    navigate(`/verify?email=${res?.data?.user?.email}`)
                 } else {
                     setAuthStatus("authenticated")
                     setCurrentUser(res?.data?.user)
                     setAccessToken(res.data.accessToken)
+                    toast.success("Login successful!")
                     navigate("/")
                 }
                 setLoginError("")
@@ -71,9 +73,9 @@ export default function Login() {
             }
         } catch (error) {
             if (error.status < 500) {
-                setLoginError(error?.message)
+                toast.error(error?.message || 'Something went wrong.')
             } else {
-                setLoginError('Internal Server Error. Please try again later.')
+                toast.error('Internal Server Error. Please try again later.')
             }
             setAuthStatus("unauthenticated")
             setCurrentUser(null)
@@ -104,18 +106,22 @@ export default function Login() {
                 setUsername("")
                 setEmail("")
                 setPassword("")
-                setCurrentUser(res?.data?.user)
-                if (res?.data && res.data?.url_token) {
-                    navigate(`/verify/${res?.data?.url_token}`)
+                if (!res?.data?.isEmailSent) {
+                    toast.success("Success! Account has been created successfully.")
+                }
+                if (res?.data && res.data?.user && res?.data?.user?.email) {
+                    toast.success("Success! Check your email for verification OTP.")
+                    navigate(`/verify?email=${res?.data?.user?.email}`)
                 } else {
+                    toast.error("Something went wrong. Please try again later.")
                     navigate('/login')
                 }
             }
         } catch (error) {
             if (error.status < 500) {
-                setLoginError(error?.message)
+                toast.error(error?.message || 'Something went wrong.')
             } else {
-                setLoginError('Internal Server Error. Please try again later.')
+                toast.error('Internal Server Error. Please try again later.')
             }
             setAuthStatus("unauthenticated")
             setCurrentUser(null)

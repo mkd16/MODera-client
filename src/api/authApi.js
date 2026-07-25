@@ -20,6 +20,10 @@ export function healthCheck() {
     return api.get("/health")
 }
 
-export function verifyOtp({ email, otp, url_token }) {
-    return api.post("/auth/verify", { email, otp, url_token })
+export function verifyOtp({ email, otp }) {
+    return api.post("/auth/verify", { email, otp })
+}
+
+export function resendOtp({ email }) {
+    return api.post("/auth/resend-otp", { email })
 }
