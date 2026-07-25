@@ -14,7 +14,7 @@ export default function AppRoutes() {
                 <Route element={<ProtectedLogin />}>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Login />} />
-                    <Route path="/verify/:url_token" element={<OTPVerification />} />
+                    <Route path="/verify" element={<OTPVerification />} />
                 </Route>
 
                 {/* Protected routes */}

@@ -1,24 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PlayIcon } from "../components/icons/icons";
-import { useAuth } from "../context/AuthContext.jsx";
 import { MiniSpinner } from "../components/ui/Spinner.jsx";
-import { verifyOtp } from "../api/authApi.js";
+import { resendOtp, verifyOtp } from "../api/authApi.js";
 import { setAccessToken } from "../utils/accessTokenManager.js";
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import toast from "react-hot-toast";
 
 export default function OTPVerification() {
-    const { url_token } = useParams();
-    if (!url_token) {
-        // 404 handling
-    }
+    const [searchParams] = useSearchParams();
+    const { setCurrentUser, setAuthStatus } = useAuth();
+    const email = searchParams.get("email");
+
     const navigate = useNavigate();
-    const { setCurrentUser, setAuthStatus, currentUser } = useAuth()
-    const email = currentUser?.email || "your registered email.";
 
     const [otp, setOtp] = useState(["", "", "", "", "", ""]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendCooldown, setResendCooldown] = useState(60);
 
     const inputRefs = useRef([]);
 
@@ -34,6 +34,11 @@ export default function OTPVerification() {
     useEffect(() => {
         inputRefs.current[0]?.focus();
     }, []);
+
+    if (!email) {
+        // 404 handling
+        return
+    }
 
     const handleChange = (index, value) => {
         // Only allow numbers
@@ -81,11 +86,11 @@ export default function OTPVerification() {
         inputRefs.current[lastFilledIndex]?.focus();
     };
 
-    const verifyOTP = async () => {
+    const verifyOTPHandler = async () => {
         const otpValue = otp.join("");
 
         if (otpValue.length !== 6) {
-            setError("Please enter the complete 6-digit code");
+            toast.error("Please enter the complete 6-digit code");
             return;
         }
 
@@ -93,20 +98,21 @@ export default function OTPVerification() {
         setError("");
 
         try {
-            const res = await verifyOtp({ email, otp: otpValue, url_token })
+            const res = await verifyOtp({ email, otp: otpValue })
 
             if (res && res.success) {
                 setError("")
                 setAccessToken(res?.data?.accessToken)
                 setCurrentUser(res?.data?.user)
                 setAuthStatus("authenticated")
+                toast.success("Success! Your account has been verified.")
                 navigate("/")
             }
         } catch (error) {
             if (error.status < 500) {
-                setError(error?.message)
+                toast.error(error?.message || "Something went wrong. Please try again.")
             } else {
-                setError('Internal Server Error. Please try again later.')
+                toast.error('Internal Server Error. Please try again later.')
             }
             setOtp(["", "", "", "", "", ""]);
             inputRefs.current[0]?.focus();
@@ -122,17 +128,16 @@ export default function OTPVerification() {
         setError("");
 
         try {
-            // TODO: API call to resend OTP
-            // await resendOTPApi({ email });
+            const res = await resendOtp({ email })
 
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
+            if (res && res.success) {
+                toast.success("Success! Verification code has been resent.")
+            }
             setResendCooldown(60);
             setOtp(["", "", "", "", "", ""]);
             inputRefs.current[0]?.focus();
         } catch (err) {
-            setError("Failed to resend code. Please try again.");
+            toast.error(err?.message || "Failed to resend code. Please try again.")
         } finally {
             setLoading(false);
         }
@@ -218,7 +223,7 @@ export default function OTPVerification() {
 
                     {/* Verify button */}
                     <button
-                        onClick={verifyOTP}
+                        onClick={verifyOTPHandler}
                         disabled={loading || otp.join("").length !== 6}
                         className="btn btn--primary btn--md btn--full"
                     >
