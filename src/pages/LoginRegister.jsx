@@ -114,7 +114,7 @@ export default function Login() {
                     navigate(`/verify?email=${res?.data?.user?.email}`)
                 } else {
                     toast.error("Something went wrong. Please try again later.")
-                    navigate('/login')
+                    navigate('/register')
                 }
             }
         } catch (error) {

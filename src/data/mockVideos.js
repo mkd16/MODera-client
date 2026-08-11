@@ -1,0 +1,38 @@
+export const mockVideos = [
+    {
+        id: 1,
+        title: "Building a YouTube Clone with React and Node.js — Part 1",
+        description: "Setting up the project structure, auth flow and the design system.",
+        thumbnail: "https://picsum.photos/seed/modera1/160/90",
+        visibility: "Public",
+        restriction: "None",
+        uploadedOn: "Jul 20, 2026",
+    },
+    {
+        id: 2,
+        title: "Designing an OTP Verification Flow the Right Way",
+        description: "Auto-focus inputs, resend cooldown and paste support explained.",
+        thumbnail: "https://picsum.photos/seed/modera2/160/90",
+        visibility: "Unlisted",
+        restriction: "None",
+        uploadedOn: "Jul 15, 2026",
+    },
+    {
+        id: 3,
+        title: "Draft: Channel Settings Page Walkthrough",
+        description: "Work in progress video, not published yet.",
+        thumbnail: "https://picsum.photos/seed/modera3/160/90",
+        visibility: "Private",
+        restriction: "Age-restricted",
+        uploadedOn: "Jul 10, 2026",
+    },
+    {
+        id: 4,
+        title: "React Router Protected Routes Explained",
+        description: "How auth guards, redirects and public routes fit together.",
+        thumbnail: "https://picsum.photos/seed/modera4/160/90",
+        visibility: "Public",
+        restriction: "None",
+        uploadedOn: "Jul 2, 2026",
+    },
+];

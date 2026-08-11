@@ -5,6 +5,7 @@ import Dashboard from "../pages/Dashboard";
 import DashboardLayout from "../layouts/DashboardLayout/DashboardLayout";
 import { Profile } from "../pages/Profile";
 import OTPVerification from "../pages/OTPverification";
+import Channel from "../pages/Channel";
 
 export default function AppRoutes() {
     return (
@@ -21,6 +22,7 @@ export default function AppRoutes() {
                 <Route element={<ProtectedRoute />}>
                     <Route element={<DashboardLayout />}>
                         <Route path="/" element={<Dashboard />} />
+                        <Route path="/channel" element={<Channel />}></Route>
                     </Route>
                     <Route path="/profile" element={<Profile />} />
                 </Route>

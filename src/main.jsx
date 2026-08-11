@@ -8,6 +8,12 @@ createRoot(document.getElementById('root')).render(
   <AuthProvider>
     <Toaster
       position='top-right'
+      toastOptions={{
+        style: {
+          fontSize: '14px',
+          fontWeight: '400',
+        },
+      }}
     />
     <App />
   </AuthProvider>
