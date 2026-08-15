@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { uploadVideo } from "../../api/uploadApi";
+import { clientSideVideoUpload, completeUpload, uploadVideo, uploadVideoToS3 } from "../../api/uploadApi";
 import ThumbnailUpload from "./ThumbnailUpload";
 import toast from "react-hot-toast";
 
@@ -15,7 +15,7 @@ const schema = z.object({
     // thumbnail: z.any(),
 });
 
-const UploadFormPanel = ({ setUploading, file }) => {
+const UploadFormPanel = ({ setUploading, file, isUploading }) => {
     const { register, handleSubmit, formState: { errors } } = useForm({
         mode: "onTouched",
         resolver: zodResolver(schema),
@@ -24,7 +24,7 @@ const UploadFormPanel = ({ setUploading, file }) => {
         }
     });
 
-    const uploadVideoHandler = async (data) => {
+    const serverUploadVideoHandler = async (data) => {
         setUploading(true)
         try {
             const formData = new FormData()
@@ -43,8 +43,51 @@ const UploadFormPanel = ({ setUploading, file }) => {
         }
     }
 
+    const clientUploadVideoHandler = async (data) => {
+        setUploading(true);
+        try {
+            let fileData = {
+                name: file.name,
+                size: file.size,
+                mimetype: file.type
+            }
+            let uploadData = {...data, fileData};
+
+            const res = await clientSideVideoUpload(uploadData);
+
+            if (res && res.success) {
+                if (res.data && res.data.videoId && res.data.presignedURL) {
+                    await uploadToS3(res.data);
+                } else {
+                    setUploading(false);
+                    toast.error("Something went wrong. Please try again.")
+                }
+            }
+        } catch (error) {
+            setUploading(false)
+            toast.error(error?.message || "Failed to upload video")
+        }
+    }
+
+    const uploadToS3 = async (data) => {
+        try {
+            await uploadVideoToS3(data.presignedURL, file)
+            const res = await completeUpload({videoId: data.videoId})
+
+            if (res && res.success) {
+                toast.success(res?.message ?? "Video uploaded successfully !!")
+            } else {
+                toast.error(res?.message ?? "Something went wrong. Please try again.")
+            }
+        } catch (error) {
+            toast.error(error?.message || "Failed to upload video")
+        } finally {
+            setUploading(false);
+        }
+    }
+
     return (
-        <form onSubmit={handleSubmit(uploadVideoHandler)}>
+        <form onSubmit={handleSubmit(clientUploadVideoHandler)}>
             <div className="upload-form-panel">
                 <div className="form-group">
                     <label className="form-label" htmlFor="title">Title<span className="form-label__required">*</span></label>
@@ -71,7 +114,7 @@ const UploadFormPanel = ({ setUploading, file }) => {
 
                 <div className="upload-form-panel__actions">
                     {/* <button type="button" className="btn btn--secondary">Save as draft</button> */}
-                    <button type="submit" className="btn btn--primary">Upload</button>
+                    <button disabled={isUploading} type="submit" className="btn btn--primary">Upload</button>
                 </div>
             </div>
         </form>

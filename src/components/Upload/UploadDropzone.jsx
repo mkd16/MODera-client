@@ -3,9 +3,9 @@ import { validateVideoFile } from "../../utils/inputValidations";
 
 const UploadDropzone = ({ onFileSelect }) => {
     const handleChange = (e) => {
+        console.log(e, '-------------');
         const file = e.target.files?.[0];
         if (file) {
-            console.log(file);
             const invalidMsg = validateVideoFile(file)
             if (invalidMsg) {
                 toast.error(invalidMsg || "Please select a valid video file.")
