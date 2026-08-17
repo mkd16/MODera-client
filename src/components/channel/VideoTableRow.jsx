@@ -1,3 +1,5 @@
+import { EditIcon, DeleteIcon } from "../icons/icons";
+
 const visibilityClassMap = {
     Public: "badge--success",
     Unlisted: "badge--warning",
@@ -26,16 +28,10 @@ const VideoTableRow = ({ video }) => {
             <td className="video-table__cell">
                 <div className="video-table__cell--actions">
                     <button type="button" className="icon-btn" aria-label="Edit video">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 20h9" strokeLinecap="round" />
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <EditIcon />
                     </button>
                     <button type="button" className="icon-btn icon-btn--danger" aria-label="Delete video">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 6h18" strokeLinecap="round" />
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <DeleteIcon />
                     </button>
                 </div>
             </td>

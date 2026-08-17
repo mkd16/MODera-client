@@ -39,11 +39,9 @@ export default function PasswordField({
                 </button>
             </div>
 
-            {error && (
-                <span className="form-error-msg">
-                    {error}
-                </span>
-            )}
+            <span className="form-error-msg">
+                {error}
+            </span>
         </div>
     );
 }

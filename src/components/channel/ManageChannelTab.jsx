@@ -25,8 +25,7 @@ const ManageChannelTab = () => {
             </div>
 
             <div className="channel-settings-form__actions">
-                <button type="button" className="btn btn--secondary">Cancel</button>
-                <button type="submit" className="btn btn--primary">Save changes</button>
+                <button type="submit" className="btn btn--primary">Save</button>
             </div>
         </form>
     );
