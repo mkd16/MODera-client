@@ -49,13 +49,13 @@ const UploadFormPanel = ({ setUploading, file }) => {
                 <div className="form-group">
                     <label className="form-label" htmlFor="title">Title<span className="form-label__required">*</span></label>
                     <input id="title" type="text" {...register('title')} className="form-input" placeholder="Add a title that describes your video" />
-                    {errors.title && <p className="form-error">{errors.title.message}</p>}
+                    <p className="form-error">{errors.title?.message}</p>
                 </div>
 
                 <div className="form-group">
                     <label className="form-label" htmlFor="description">Description</label>
                     <textarea id="description" {...register('description')} className="form-input form-textarea" rows={5} placeholder="Tell viewers about your video" />
-                    {errors.description && <p className="form-error">{errors.description.message}</p>}
+                    <p className="form-error">{errors.description?.message}</p>
                 </div>
 
                 {/* <ThumbnailUpload /> */}
@@ -66,7 +66,7 @@ const UploadFormPanel = ({ setUploading, file }) => {
                         <option value="public">Public</option>
                         <option value="private">Private</option>
                     </select>
-                    {errors.visibility && <p className="form-error">{errors.visibility.message}</p>}
+                    <p className="form-error">{errors.visibility?.message}</p>
                 </div>
 
                 <div className="upload-form-panel__actions">

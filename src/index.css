@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 /* ════════════════════════════════════════
    RESET
@@ -13,16 +13,16 @@
 }
 
 /* ════════════════════════════════════════
-   DESIGN TOKENS  —  Sneat palette
-   Primary   : #696cff  (soft indigo)
-   YouTube   : structure only, no red
+   DESIGN TOKENS  —  BetFury-inspired dark palette
+   Primary   : #ED1D49  (vivid red)
+   Extracted from betfury.com's live computed styles
 ════════════════════════════════════════ */
 :root {
-  /* ── Primary (Sneat indigo) ─────────── */
-  --primary: #696cff;
-  --primary-dark: #5f61e6;
-  --primary-light: #eeeeff;
-  --primary-shadow: rgba(105, 108, 255, 0.28);
+  /* ── Primary (BetFury red) ──────────── */
+  --primary: #ED1D49;
+  --primary-dark: #C81640;
+  --primary-light: rgba(237, 29, 73, 0.08);
+  --primary-shadow: rgba(237, 29, 73, 0.22);
 
   /* ── Alias: use --primary everywhere
         that was formerly --brand          */
@@ -32,37 +32,39 @@
   --brand-shadow: var(--primary-shadow);
 
   /* ── Surfaces ───────────────────────── */
-  --bg-body: #f5f5f9;
-  /* Sneat page background   */
-  --bg-card: #ffffff;
-  /* card / panel white      */
-  --bg-input: #ffffff;
-  --bg-hover: #f0f0ff;
-  /* subtle indigo tint      */
+  --bg-body: #0d131c;
+  /* BetFury page background */
+  --bg-card: #111923;
+  /* BetFury card / panel     */
+  --bg-input: #111923;
+  --bg-hover: rgba(255, 255, 255, 0.09);
+  /* light wash on dark surfaces */
+  --bg-surface-2: #1a2432;
+  /* one step lighter than card, for nested wells/placeholders */
 
   /* ── Text ───────────────────────────── */
-  --text-heading: #32475c;
-  /* Sneat dark slate        */
-  --text-body: #6d788d;
-  /* mid grey                */
-  --text-muted: #a8aaae;
-  /* placeholder / hints     */
-  --text-disabled: #c8cdd2;
+  --text-heading: #ffffff;
+  --text-body: #a7b5ca;
+  /* BetFury secondary text  */
+  --text-muted: #7c8ba3;
+  --text-disabled: #465166;
 
   /* ── Borders ────────────────────────── */
-  --border: #dbdde1;
+  --border: rgba(255, 255, 255, 0.14);
+  /* visible but still a hairline */
   --border-focus: var(--primary);
 
   /* ── Semantic ───────────────────────── */
   --color-error: #ff4c51;
   --color-success: #56ca00;
   --color-warning: #ffb400;
-  --color-info: #16b1ff;
+  --color-info: #2283f6;
+  /* BetFury's blue accent   */
 
-  --color-error-bg: #ffeff0;
-  --color-success-bg: #edfae1;
-  --color-warning-bg: #fff8e1;
-  --color-info-bg: #e8f7ff;
+  --color-error-bg: rgba(255, 76, 81, 0.16);
+  --color-success-bg: rgba(86, 202, 0, 0.16);
+  --color-warning-bg: rgba(255, 180, 0, 0.16);
+  --color-info-bg: rgba(34, 131, 246, 0.16);
 
   /* ── Shape ──────────────────────────── */
   --radius-sm: 6px;
@@ -71,13 +73,13 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* ── Elevation ──────────────────────── */
-  --shadow-sm: 0 2px 6px rgba(47, 43, 61, 0.10);
-  --shadow-md: 0 4px 18px rgba(47, 43, 61, 0.12);
-  --shadow-lg: 0 8px 30px rgba(47, 43, 61, 0.16);
+  /* ── Elevation (deeper — dark-on-dark needs more contrast) ── */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.50);
 
   /* ── Typography ─────────────────────── */
-  --font: 'Public Sans', system-ui, sans-serif;
+  --font: 'Montserrat', system-ui, sans-serif;
 
   /* Keep YOUR sizes exactly as you set them */
   --text-xxs: 0.75rem;
@@ -94,30 +96,21 @@
   --ease: 200ms ease;
 
   /* ══════════════════════════════════════
-     DASHBOARD THEME (Sneat-style light)
-     YouTube structure, Sneat colors
+     DASHBOARD THEME (BetFury-style dark)
+     YouTube structure, BetFury colors
   ══════════════════════════════════════ */
   --dash-bg-body: var(--bg-body);
-  /* f5f5f9 */
-  --dash-bg-sidebar: #ffffff;
-  /* white sidebar */
-  --dash-bg-navbar: #ffffff;
-  /* white navbar */
+  --dash-bg-sidebar: var(--bg-card);
+  --dash-bg-navbar: var(--bg-card);
   --dash-bg-hover: var(--primary-light);
-  /* eeeeff indigo tint */
   --dash-bg-active: var(--primary-light);
 
   --dash-text-primary: var(--text-heading);
-  /* 32475c */
   --dash-text-body: var(--text-body);
-  /* 6d788d */
   --dash-text-muted: var(--text-muted);
-  /* a8aaae */
 
   --dash-border: var(--border);
-  /* dbdde1 */
   --dash-accent: var(--primary);
-  /* 696cff */
 }
 
 /* ════════════════════════════════════════
@@ -152,7 +145,7 @@ body {
   width: 42%;
   flex-shrink: 0;
   /* Sneat-style indigo gradient */
-  background: linear-gradient(145deg, #696cff 0%, #4547c4 100%);
+  background: linear-gradient(320deg, var(--primary) 0%, #4a0e20 100%);
   padding: 48px 56px;
   flex-direction: column;
   justify-content: space-between;
@@ -217,7 +210,7 @@ body {
 }
 
 .auth-cover-body h2 {
-  font-size: 2.125rem;
+  font-size: var(--text-3xl);
   font-weight: 700;
   color: #fff;
   line-height: 1.25;
@@ -257,6 +250,7 @@ body {
   padding: 28px;
   border-radius: var(--radius-lg);
   background: var(--bg-card);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-md);
 }
 
@@ -307,13 +301,14 @@ body {
 .form-fields {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 
 .form-label {
@@ -366,6 +361,19 @@ body {
   opacity: 0.65;
 }
 
+/* Browser autofill/suggestion forces its own white background —
+   override via the box-shadow trick since background-color itself
+   can't be overridden directly on autofilled inputs. */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  -webkit-text-fill-color: var(--text-heading) !important;
+  caret-color: var(--text-heading);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 .form-input--error {
   border-color: var(--color-error) !important;
 }
@@ -378,6 +386,8 @@ body {
   font-size: var(--text-xxs);
   color: var(--color-error);
   margin-top: -4px;
+  line-height: 1.4;
+  min-height: 1.4em;
 }
 
 /* Password wrapper */
@@ -418,11 +428,14 @@ body {
 
 /* Error message */
 .form-error-msg {
-  font-size: var(--text-xs);
+  font-size: var(--text-xxs);
   color: var(--color-error);
   display: flex;
   align-items: center;
   gap: 4px;
+  min-height: 1.4em;
+  position: absolute;
+  top: 76px;
 }
 
 /* ════════════════════════════════════════
@@ -509,35 +522,26 @@ body {
 }
 
 /* variants */
-.btn--primary {
-  background: var(--primary);
-  color: #fff;
-}
-
-.btn--primary:hover {
-  background: var(--primary-dark);
-  box-shadow: 0 4px 14px var(--primary-shadow);
-}
-
-/* keep --brand alias working */
+.btn--primary,
 .btn--brand {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: #fff;
+  box-shadow: 0 2px 8px var(--primary-shadow);
 }
 
+.btn--primary:hover,
 .btn--brand:hover {
-  background: var(--primary-dark);
-  box-shadow: 0 4px 14px var(--primary-shadow);
+  box-shadow: 0 6px 20px var(--primary-shadow);
 }
 
 .btn--outlined {
-  background: #fff;
+  background: var(--bg-card);
   color: var(--text-body);
   border: 1.5px solid var(--border);
 }
 
 .btn--outlined:hover {
-  background: var(--bg-body);
+  background: var(--bg-hover);
   border-color: var(--text-muted);
 }
 
@@ -675,13 +679,11 @@ body {
 }
 
 .spinner {
-  width: 16px;
-  height: 16px;
   animation: spin 0.8s linear infinite;
 }
 
 .spinner-track {
-  stroke: rgba(255, 255, 255, 0.2);
+  stroke: var(--spinner-track-color, rgba(255, 255, 255, 0.2));
 }
 
 .spinner-head {
@@ -898,8 +900,8 @@ body {
 
 /* Voice search button */
 .yt-voice-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -910,6 +912,11 @@ body {
   color: var(--dash-text-body);
   transition: background var(--ease);
   flex-shrink: 0;
+}
+
+.yt-voice-btn svg {
+  width: 22px;
+  height: 22px;
 }
 
 .yt-voice-btn:hover {
@@ -959,7 +966,7 @@ body {
   width: 32px;
   height: 32px;
   border-radius: var(--radius-full);
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -989,7 +996,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   transition: width 0.2s ease, transform 0.2s ease;
-  z-index: 50;
+  z-index: 200;
 }
 
 /* Collapsed state */
@@ -1026,7 +1033,7 @@ body {
 }
 
 .yt-sidebar-section-title {
-  font-size: 0.75rem;
+  font-size: var(--text-xxs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1063,6 +1070,8 @@ body {
   background: var(--dash-bg-active);
   color: var(--primary);
   font-weight: 500;
+  border-left: 3px solid var(--primary);
+  padding-left: 9px;
 }
 
 .yt-nav-item svg {
@@ -1140,19 +1149,20 @@ body {
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   border: 1px solid var(--dash-border);
 }
 
 .yt-video-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
 }
 
 .yt-video-card-thumb {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: var(--bg-body);
+  background: var(--bg-surface-2);
   position: relative;
 }
 
@@ -1173,7 +1183,7 @@ body {
 }
 
 .yt-video-card-meta {
-  font-size: 0.75rem;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
   line-height: 1.4;
 }
@@ -1181,9 +1191,9 @@ body {
 /* Skeleton loader */
 .skeleton {
   background: linear-gradient(90deg,
-      var(--bg-body) 0%,
-      #e8e8ed 50%,
-      var(--bg-body) 100%);
+      var(--bg-surface-2) 0%,
+      #2a3849 50%,
+      var(--bg-surface-2) 100%);
   background-size: 200% 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
 }
@@ -1202,8 +1212,11 @@ body {
 .yt-sidebar-overlay {
   display: none;
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
   z-index: 150;
 }
 
@@ -1238,19 +1251,19 @@ body {
 }
 
 .channel-header__display-name {
-  font-size: 13px;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
 }
 
 .channel-header__channel-name {
-  font-size: 24px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text-heading);
   margin: 0;
 }
 
 .channel-header__description {
-  font-size: 14px;
+  font-size: var(--text-xs);
   color: var(--text-body);
   max-width: 640px;
 }
@@ -1264,7 +1277,7 @@ body {
 
 .channel-tab {
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text-muted);
   background: transparent;
@@ -1302,7 +1315,7 @@ body {
 
 .video-table thead th {
   text-align: left;
-  font-size: 12px;
+  font-size: var(--text-xxs);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--text-muted);
@@ -1334,14 +1347,14 @@ body {
 }
 
 .video-table__title {
-  font-size: 14px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text-heading);
   margin: 0 0 4px;
 }
 
 .video-table__description {
-  font-size: 13px;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
   max-width: 320px;
   overflow: hidden;
@@ -1351,7 +1364,7 @@ body {
 
 .video-table__cell--restriction,
 .video-table__cell--date {
-  font-size: 13px;
+  font-size: var(--text-xxs);
   color: var(--text-body);
   white-space: nowrap;
 }
@@ -1366,7 +1379,7 @@ body {
   display: inline-block;
   padding: 4px 10px;
   border-radius: var(--radius-xl);
-  font-size: 12px;
+  font-size: var(--text-xxs);
   font-weight: 500;
 }
 
@@ -1396,6 +1409,7 @@ body {
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
+  transition: background var(--ease), color var(--ease);
 }
 
 .icon-btn svg {
@@ -1419,18 +1433,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-heading);
 }
 
 .form-textarea {
@@ -1477,7 +1479,7 @@ body {
 }
 
 .upload-modal__title {
-  font-size: 18px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--text-heading);
   margin: 0;
@@ -1495,6 +1497,7 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 320px;
+  background: var(--bg-surface-2);
   border: 2px dashed var(--border);
   border-radius: var(--radius-lg);
   cursor: pointer;
@@ -1502,8 +1505,13 @@ body {
   padding: 24px;
 }
 
+.upload-dropzone {
+  transition: border-color var(--ease), background var(--ease);
+}
+
 .upload-dropzone:hover {
   border-color: var(--primary);
+  background: var(--bg-hover);
 }
 
 .upload-dropzone__icon {
@@ -1524,13 +1532,13 @@ body {
 }
 
 .upload-dropzone__title {
-  font-size: 15px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text-heading);
 }
 
 .upload-dropzone__subtitle {
-  font-size: 13px;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
   margin-bottom: 8px;
 }
@@ -1578,14 +1586,14 @@ body {
 }
 
 .upload-preview-panel__file-name {
-  font-size: 14px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text-heading);
   margin: 0;
 }
 
 .upload-preview-panel__file-size {
-  font-size: 12px;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
   margin: 0;
 }
@@ -1608,7 +1616,7 @@ body {
 }
 
 .upload-progress__label {
-  font-size: 12px;
+  font-size: var(--text-xxs);
   color: var(--text-muted);
   margin: 0;
 }
@@ -1629,7 +1637,7 @@ body {
   gap: 6px;
   height: 120px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: var(--text-xxs);
 }
 
 .thumbnail-upload__placeholder svg {
@@ -1712,10 +1720,39 @@ body {
   }
 }
 
-/* Hide search on small mobile */
+/* Mobile search: collapse the bar into an icon, expand full-width on tap */
+.yt-mobile-search-btn {
+  display: none;
+}
+
+.yt-mobile-search-close {
+  display: none;
+}
+
 @media (max-width: 600px) {
   .yt-navbar-center {
     display: none;
+  }
+
+  .yt-mobile-search-btn {
+    display: inline-flex;
+  }
+
+  .yt-navbar--search-active .yt-navbar-left,
+  .yt-navbar--search-active .yt-navbar-right {
+    display: none;
+  }
+
+  .yt-navbar--search-active .yt-navbar-center {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .yt-navbar--search-active .yt-mobile-search-close {
+    display: inline-flex;
+    flex-shrink: 0;
   }
 }
 
@@ -1729,13 +1766,6 @@ body {
 /* Hide voice button on tablets and below */
 @media (max-width: 768px) {
   .yt-voice-btn {
-    display: none;
-  }
-}
-
-/* Hide create button on mobile */
-@media (max-width: 768px) {
-  .yt-icon-btn:first-child {
     display: none;
   }
 }

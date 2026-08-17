@@ -24,11 +24,9 @@ export default function InputField({
                 className={`form-input ${error ? "form-input--error" : ""}`}
             />
 
-            {error && (
-                <span className="form-error-msg">
-                    {error}
-                </span>
-            )}
+            <span className="form-error-msg">
+                {error}
+            </span>
         </div>
     );
 }
