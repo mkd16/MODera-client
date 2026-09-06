@@ -435,7 +435,7 @@ body {
   gap: 4px;
   min-height: 1.4em;
   position: absolute;
-  top: 76px;
+  top: 73px;
 }
 
 /* ════════════════════════════════════════
@@ -726,10 +726,10 @@ body {
 /* ════════════════════════════════════════
    FOCUS RING
 ════════════════════════════════════════ */
-:focus-visible {
+/* :focus-visible {
   outline: 1px solid var(--primary);
   outline-offset: 2px;
-}
+} */
 
 /* ════════════════════════════════════════
    DASHBOARD LAYOUT — YouTube structure, Sneat theme

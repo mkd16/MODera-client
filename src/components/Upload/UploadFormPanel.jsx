@@ -1,9 +1,10 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientSideVideoUpload, completeUpload, uploadVideo, uploadVideoToS3 } from "../../api/uploadApi";
+import { clientSideVideoUpload, completeUpload, getPresignedUploadUrl, multipartUpload, uploadVideo, uploadVideoToS3 } from "../../api/uploadApi";
 import ThumbnailUpload from "./ThumbnailUpload";
 import toast from "react-hot-toast";
+import { uploadChunksInBatch } from "../../utils/uploadChunks";
 
 const schema = z.object({
     title: z.string()
@@ -15,7 +16,7 @@ const schema = z.object({
     // thumbnail: z.any(),
 });
 
-const UploadFormPanel = ({ setUploading, file, isUploading }) => {
+const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
     const { register, handleSubmit, formState: { errors } } = useForm({
         mode: "onTouched",
         resolver: zodResolver(schema),
@@ -51,7 +52,7 @@ const UploadFormPanel = ({ setUploading, file, isUploading }) => {
                 size: file.size,
                 mimetype: file.type
             }
-            let uploadData = {...data, fileData};
+            let uploadData = { ...data, fileData };
 
             const res = await clientSideVideoUpload(uploadData);
 
@@ -72,7 +73,7 @@ const UploadFormPanel = ({ setUploading, file, isUploading }) => {
     const uploadToS3 = async (data) => {
         try {
             await uploadVideoToS3(data.presignedURL, file)
-            const res = await completeUpload({videoId: data.videoId})
+            const res = await completeUpload({ videoId: data.videoId })
 
             if (res && res.success) {
                 toast.success(res?.message ?? "Video uploaded successfully !!")
@@ -86,8 +87,80 @@ const UploadFormPanel = ({ setUploading, file, isUploading }) => {
         }
     }
 
+    const multipartUploadHandler = async (data) => {
+        try {
+            setUploading(true)
+            let fileData = {
+                name: file.name,
+                size: file.size,
+                mimetype: file.type
+            }
+            let uploadData = { ...data, fileData }
+
+            const res = await multipartUpload(uploadData)
+
+            if (res && res.success) {
+                const { partSize, sessionId, videoId, totalParts } = res.data
+                const uploadContext = {
+                    partSize,
+                    totalParts,
+                    sessionId,
+                    videoId,
+                }
+                const uploaded = await createAndUploadChunks(uploadContext)
+                if (uploaded) {
+                    closeModal()
+                }
+            }
+        } catch (error) {
+            toast.error(error?.message || "Multipart upload failed")
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const createAndUploadChunks = async (uploadContext) => {
+        const { videoId, sessionId, totalParts, partSize } = uploadContext
+        for (let index = 1; index <= totalParts; index += 10) {
+            const range = [...Array(Math.min(index + 10, totalParts + 1) - index).keys()].map(i => i + index)
+            const data = { range, videoId, sessionId }
+            let urlBatch = await getPresignedUploadUrl(data)
+            await uploadChunksInBatch(file, urlBatch.data, partSize)
+        }
+        let incompleteUpload = true
+        let pendingUploads = []
+        let retry = 0
+        const MAX_RETRIES = 5
+
+        while (incompleteUpload && retry < MAX_RETRIES) {
+            if (pendingUploads && pendingUploads.length > 0) {
+                await uploadChunksInBatch(file, pendingUploads, partSize)
+                pendingUploads = []
+                incompleteUpload = true
+
+                await new Promise(resolve => setTimeout(resolve, 1000))          // add a timeout so that uploaded parts can be synced in s3 for list parts
+            } else {
+                const res = await completeUpload({ sessionId, videoId });
+                if (res && res.success && res.data?.length <= 0) {
+                    incompleteUpload = false
+                    toast.success("File Uploaded Successfully !!")
+                } else {
+                    incompleteUpload = true
+                    pendingUploads = res.data
+                    retry++;
+                }
+            }
+        }
+
+        if (incompleteUpload) {
+            toast.error("Upload incomplete. Please check your connection or retry later.")
+            return false
+        }
+        return true
+    }
+
     return (
-        <form onSubmit={handleSubmit(clientUploadVideoHandler)}>
+        <form onSubmit={handleSubmit(multipartUploadHandler)}>
             <div className="upload-form-panel">
                 <div className="form-group">
                     <label className="form-label" htmlFor="title">Title<span className="form-label__required">*</span></label>

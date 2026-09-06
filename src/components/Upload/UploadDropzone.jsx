@@ -4,7 +4,6 @@ import { UploadArrowIcon } from "../icons/icons";
 
 const UploadDropzone = ({ onFileSelect }) => {
     const handleChange = (e) => {
-        console.log(e, '-------------');
         const file = e.target.files?.[0];
         if (file) {
             const invalidMsg = validateVideoFile(file)

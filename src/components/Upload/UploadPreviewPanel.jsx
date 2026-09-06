@@ -1,11 +1,35 @@
+import { useEffect, useState } from "react";
+
 const UploadPreviewPanel = ({ file }) => {
-    const previewUrl = file ? URL.createObjectURL(file) : null;
-    // This creates BLOB (binary large object) URL for browser to render video
+    const [previewUrl, setPreviewUrl] = useState(null);
+
+    useEffect(() => {
+        if (!file) {
+            setPreviewUrl(null);
+            return;
+        }
+
+        const blobUrl = URL.createObjectURL(file);
+        setPreviewUrl(blobUrl);
+
+        // Cleanup: revoke the blob URL when file changes or component unmounts
+        return () => {
+            URL.revokeObjectURL(blobUrl);
+        };
+    }, [file]);
 
     return (
         <div className="upload-preview-panel">
             <div className="upload-preview-panel__player">
-                {previewUrl && <video src={previewUrl} className="upload-preview-panel__video" controls muted />}
+                {previewUrl && (
+                    <video
+                        src={previewUrl}
+                        className="upload-preview-panel__video"
+                        controls
+                        muted
+                        playsInline
+                    />
+                )}
             </div>
 
             <div className="upload-preview-panel__file-info">
