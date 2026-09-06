@@ -24,7 +24,7 @@ const UploadModal = ({ onClose }) => {
                     <div className="upload-modal__body">
                         {selectedFile ? (
                             <div className="upload-split">
-                                <UploadFormPanel setUploading={setUploading} isUploading={uploading} file={selectedFile} />
+                                <UploadFormPanel setUploading={setUploading} isUploading={uploading} file={selectedFile} closeModal={onClose} />
                                 <UploadPreviewPanel file={selectedFile} />
                             </div>
                         ) : (
