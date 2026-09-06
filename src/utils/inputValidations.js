@@ -7,7 +7,8 @@ export function validateVideoFile(file) {
     if (file.size > MAX_VIDEO_SIZE) {
         return (`Video file size exceeds the maximum limit of ${MAX_VIDEO_SIZE / 1024 / 1024} MB`);
     }
-    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+    // Allow empty file.type (common on mobile file pickers) — server validates strictly
+    if (file.type && !ACCEPTED_VIDEO_TYPES.includes(file.type)) {
         return (`Video file type is not supported. Please upload a video file of type ${ACCEPTED_VIDEO_TYPES.join(", ")}`);
     }
     return "";
