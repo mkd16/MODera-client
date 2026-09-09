@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 const UploadPreviewPanel = ({ file }) => {
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [debug, setDebug] = useState("");
+    setDebug(`type: ${file.type}, size: ${file.size}`);
 
     useEffect(() => {
         if (!file) {
@@ -31,11 +33,17 @@ const UploadPreviewPanel = ({ file }) => {
                         controls
                         muted
                         playsInline
-                        onLoadedMetadata={()=>{console.log("VIDEO metadata loaded")}}
-                        onError={(e)=>{console.log('Video Error', e.currentTarget.error)}}
+                        onLoadedMetadata={() => setDebug("metadata loaded")}
+                        onError={(e) => {
+                            setDebug(
+                                `Video error: ${e.currentTarget.error?.message || "unknown"}`
+                            );
+                        }}
                     />
                 )}
             </div>
+
+            <p>{debug}</p>
 
             <div className="upload-preview-panel__file-info">
                 <p className="upload-preview-panel__file-name">{file?.name}</p>
