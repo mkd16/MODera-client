@@ -1,41 +1,82 @@
 import { useEffect, useState } from "react";
 
 const MEDIA_ERROR_CODES = {
-    1: "MEDIA_ERR_ABORTED - The media playback was aborted.",
-    2: "MEDIA_ERR_NETWORK - A network error occurred while loading the media.",
-    3: "MEDIA_ERR_DECODE - The media could not be decoded. This commonly indicates an unsupported/corrupt codec or malformed media.",
-    4: "MEDIA_ERR_SRC_NOT_SUPPORTED - The media format or source is not supported by this browser.",
+    1: "MEDIA_ERR_ABORTED",
+    2: "MEDIA_ERR_NETWORK",
+    3: "MEDIA_ERR_DECODE",
+    4: "MEDIA_ERR_SRC_NOT_SUPPORTED",
 };
 
-const NETWORK_STATES = {
-    0: "NETWORK_EMPTY",
-    1: "NETWORK_IDLE",
-    2: "NETWORK_LOADING",
-    3: "NETWORK_NO_SOURCE",
-};
-
-const READY_STATES = {
-    0: "HAVE_NOTHING",
-    1: "HAVE_METADATA",
-    2: "HAVE_CURRENT_DATA",
-    3: "HAVE_FUTURE_DATA",
-    4: "HAVE_ENOUGH_DATA",
-};
-
-const getBrowserInfo = () => {
-    if (typeof navigator === "undefined") {
+const getDiagnosis = ({ errorCode, fileType, support, readyState }) => {
+    if (errorCode === 3) {
         return {
-            userAgent: "SSR / navigator unavailable",
-            platform: "unknown",
+            title: "Video decoding failed",
+            message:
+                "The browser received the video but could not decode it. The video codec may not be supported on this mobile device.",
+            action:
+                "Check whether the video uses H.264/AVC. HEVC/H.265 videos are a common cause of this issue.",
+        };
+    }
+
+    if (errorCode === 4) {
+        return {
+            title: "Video format is not supported",
+            message:
+                "This mobile browser does not support the uploaded video format or codec.",
+            action:
+                "Convert the video to MP4 using H.264 video + AAC audio.",
+        };
+    }
+
+    if (errorCode === 2) {
+        return {
+            title: "Video loading failed",
+            message:
+                "The browser encountered a problem while loading the video.",
+            action:
+                "Check the Blob URL, file loading, and upload pipeline.",
+        };
+    }
+
+    if (!fileType) {
+        return {
+            title: "Missing MIME type",
+            message:
+                "The uploaded file does not have a MIME type.",
+            action:
+                "Check how the mobile file is being selected/uploaded.",
+        };
+    }
+
+    if (
+        fileType === "video/mp4" &&
+        support.canPlayMp4 === ""
+    ) {
+        return {
+            title: "MP4 is not supported",
+            message:
+                "The browser reports that it cannot play video/mp4.",
+            action:
+                "Use a browser-compatible H.264/AAC MP4.",
+        };
+    }
+
+    if (readyState === 0) {
+        return {
+            title: "Video has no readable metadata",
+            message:
+                "The browser could not read the video's metadata.",
+            action:
+                "Check the video container and codec.",
         };
     }
 
     return {
-        userAgent: navigator.userAgent,
-        platform: navigator.platform,
-        vendor: navigator.vendor,
-        language: navigator.language,
-        online: navigator.onLine,
+        title: "Unknown playback problem",
+        message:
+            "The browser could not provide enough information to determine the exact cause.",
+        action:
+            "Check the original video's codec and encoding.",
     };
 };
 
@@ -52,105 +93,78 @@ const getVideoSupport = (fileType) => {
     const video = document.createElement("video");
 
     return {
-        canPlay: fileType ? video.canPlayType(fileType) : "",
+        canPlay: fileType
+            ? video.canPlayType(fileType)
+            : "",
         canPlayMp4: video.canPlayType("video/mp4"),
-        canPlayH264: video.canPlayType('video/mp4; codecs="avc1.42E01E"'),
-        canPlayHevc: video.canPlayType('video/mp4; codecs="hvc1"'),
+        canPlayH264: video.canPlayType(
+            'video/mp4; codecs="avc1.42E01E"'
+        ),
+        canPlayHevc: video.canPlayType(
+            'video/mp4; codecs="hvc1"'
+        ),
     };
 };
 
 const UploadPreviewPanel = ({ file }) => {
     const [previewUrl, setPreviewUrl] = useState(null);
-    const [debug, setDebug] = useState(null);
+
+    const [diagnostics, setDiagnostics] = useState({
+        status: "waiting",
+        message: "Waiting for video...",
+    });
 
     useEffect(() => {
         if (!file) {
             setPreviewUrl(null);
-            setDebug(null);
+
+            setDiagnostics({
+                status: "waiting",
+                message: "No video selected.",
+            });
+
             return;
         }
 
-        const browser = getBrowserInfo();
         const support = getVideoSupport(file.type);
-
-        const fileInfo = {
-            name: file.name,
-            type: file.type || "(empty MIME type)",
-            size: file.size,
-            sizeMB: (file.size / (1024 * 1024)).toFixed(2),
-            lastModified: file.lastModified
-                ? new Date(file.lastModified).toISOString()
-                : null,
-        };
-
-        console.group("🎥 VIDEO UPLOAD DIAGNOSTICS");
-        console.log("File:", fileInfo);
-        console.log("Browser:", browser);
-        console.log("Video support:", support);
-        console.log(
-            "File is MP4:",
-            file.type === "video/mp4" || /\.mp4$/i.test(file.name)
-        );
-
-        if (!file.type) {
-            console.warn(
-                "⚠️ File has no MIME type. This may cause playback issues."
-            );
-        }
-
-        if (
-            file.type &&
-            !file.type.startsWith("video/")
-        ) {
-            console.warn(
-                "⚠️ File MIME type does not identify this as a video:",
-                file.type
-            );
-        }
-
-        if (file.type === "video/mp4" && !support.canPlayMp4) {
-            console.warn(
-                "⚠️ Browser reports that it cannot play video/mp4."
-            );
-        }
-
-        console.groupEnd();
 
         let blobUrl;
 
         try {
             blobUrl = URL.createObjectURL(file);
+
             setPreviewUrl(blobUrl);
 
-            setDebug({
-                stage: "blob-created",
-                file: fileInfo,
-                browser,
-                support,
-                blobUrl,
+            setDiagnostics({
+                status: "loading",
+                message: "Video selected. Waiting for browser to read metadata.",
+
+                file: {
+                    name: file.name,
+                    type: file.type || "EMPTY",
+                    sizeMB: (
+                        file.size /
+                        (1024 * 1024)
+                    ).toFixed(2),
+                },
+
+                browserSupport: support,
             });
-
-            console.log("✅ Blob URL created:", blobUrl);
         } catch (error) {
-            console.error("❌ Failed to create Blob URL:", error);
+            setDiagnostics({
+                status: "error",
+                message: "Could not create video preview.",
 
-            setDebug({
-                stage: "blob-create-error",
                 error: {
                     name: error?.name,
                     message: error?.message,
-                    stack: error?.stack,
                 },
-                file: fileInfo,
-                browser,
-                support,
             });
 
             return;
         }
 
         return () => {
-            console.log("🧹 Revoking Blob URL:", blobUrl);
             URL.revokeObjectURL(blobUrl);
         };
     }, [file]);
@@ -158,72 +172,42 @@ const UploadPreviewPanel = ({ file }) => {
     const handleLoadedMetadata = (event) => {
         const video = event.currentTarget;
 
-        const metadata = {
-            duration: video.duration,
-            videoWidth: video.videoWidth,
-            videoHeight: video.videoHeight,
-            readyState: video.readyState,
-            readyStateName: READY_STATES[video.readyState],
-            networkState: video.networkState,
-            networkStateName: NETWORK_STATES[video.networkState],
-        };
-
-        console.log("✅ VIDEO METADATA LOADED:", metadata);
-
-        setDebug((previous) => ({
+        setDiagnostics((previous) => ({
             ...previous,
-            stage: "metadata-loaded",
-            metadata,
-        }));
-    };
 
-    const handleLoadedData = (event) => {
-        const video = event.currentTarget;
+            status: "metadata-loaded",
 
-        console.log("✅ VIDEO DATA LOADED", {
-            currentTime: video.currentTime,
-            duration: video.duration,
-            readyState: video.readyState,
-            readyStateName: READY_STATES[video.readyState],
-        });
+            message:
+                "Video metadata loaded successfully.",
 
-        setDebug((previous) => ({
-            ...previous,
-            stage: "data-loaded",
+            video: {
+                duration: video.duration,
+                width: video.videoWidth,
+                height: video.videoHeight,
+                readyState: video.readyState,
+                networkState: video.networkState,
+            },
         }));
     };
 
     const handleCanPlay = (event) => {
         const video = event.currentTarget;
 
-        console.log("✅ VIDEO CAN PLAY", {
-            duration: video.duration,
-            videoWidth: video.videoWidth,
-            videoHeight: video.videoHeight,
-            readyState: video.readyState,
-        });
-
-        setDebug((previous) => ({
+        setDiagnostics((previous) => ({
             ...previous,
-            stage: "can-play",
-        }));
-    };
 
-    const handleStalled = () => {
-        console.warn("⚠️ VIDEO STALLED");
+            status: "success",
 
-        setDebug((previous) => ({
-            ...previous,
-            stage: "stalled",
-        }));
-    };
+            message:
+                "Video can be played by this browser.",
 
-    const handleWaiting = () => {
-        console.warn("⚠️ VIDEO WAITING");
-
-        setDebug((previous) => ({
-            ...previous,
-            stage: "waiting",
+            video: {
+                duration: video.duration,
+                width: video.videoWidth,
+                height: video.videoHeight,
+                readyState: video.readyState,
+                networkState: video.networkState,
+            },
         }));
     };
 
@@ -232,75 +216,85 @@ const UploadPreviewPanel = ({ file }) => {
         const mediaError = video.error;
 
         const errorCode = mediaError?.code;
-        const errorDescription =
+        const errorName =
             MEDIA_ERROR_CODES[errorCode] ||
-            "Unknown media error";
+            "UNKNOWN_ERROR";
 
-        const diagnostic = {
-            stage: "video-error",
+        const support = getVideoSupport(file?.type);
+
+        const diagnosis = getDiagnosis({
+            errorCode,
+            fileType: file?.type,
+            support,
+            readyState: video.readyState,
+        });
+
+        setDiagnostics({
+            status: "error",
+
+            message: diagnosis.title,
 
             error: {
-                code: errorCode,
-                codeName: errorDescription,
-                message: mediaError?.message || "(no browser error message)",
+                code: errorCode || "UNKNOWN",
+                codeName: errorName,
+                browserMessage:
+                    mediaError?.message ||
+                    "No browser error message available.",
+            },
+
+            diagnosis: {
+                explanation: diagnosis.message,
+                recommendedAction: diagnosis.action,
+            },
+
+            file: {
+                name: file?.name,
+                type: file?.type || "EMPTY",
+                sizeMB: file
+                    ? (
+                          file.size /
+                          (1024 * 1024)
+                      ).toFixed(2)
+                    : null,
             },
 
             video: {
                 src: video.currentSrc || video.src,
-                currentTime: video.currentTime,
                 duration: video.duration,
-                videoWidth: video.videoWidth,
-                videoHeight: video.videoHeight,
+                width: video.videoWidth,
+                height: video.videoHeight,
                 readyState: video.readyState,
-                readyStateName: READY_STATES[video.readyState],
                 networkState: video.networkState,
-                networkStateName: NETWORK_STATES[video.networkState],
             },
 
-            file: file
-                ? {
-                      name: file.name,
-                      type: file.type,
-                      size: file.size,
-                      sizeMB: (
-                          file.size /
-                          (1024 * 1024)
-                      ).toFixed(2),
-                  }
-                : null,
+            browserSupport: support,
 
-            browser: getBrowserInfo(),
+            device: {
+                userAgent:
+                    navigator.userAgent,
+                platform:
+                    navigator.platform,
+                language:
+                    navigator.language,
+            },
+        });
+    };
 
-            support: getVideoSupport(file?.type),
-        };
+    const getStatusColor = () => {
+        switch (diagnostics.status) {
+            case "success":
+                return "#16a34a";
 
-        console.error(
-            "❌❌❌ VIDEO PLAYBACK ERROR ❌❌❌"
-        );
-        console.error(diagnostic);
+            case "error":
+                return "#dc2626";
 
-        /*
-         * Important diagnostic interpretation:
-         *
-         * code === 3
-         * MEDIA_ERR_DECODE
-         *
-         * Usually means the browser received the media but
-         * couldn't decode it. Check the video's actual codec.
-         *
-         * code === 4
-         * MEDIA_ERR_SRC_NOT_SUPPORTED
-         *
-         * Usually means the browser doesn't support the
-         * source/format/codec or the source is invalid.
-         *
-         * code === 2
-         * MEDIA_ERR_NETWORK
-         *
-         * Investigate loading/network/blob issues.
-         */
+            case "loading":
+            case "metadata-loaded":
+                return "#d97706";
 
-        setDebug(diagnostic);
+            default:
+                return "#6b7280";
+        }
     };
 
     return (
@@ -314,31 +308,177 @@ const UploadPreviewPanel = ({ file }) => {
                         muted
                         playsInline
                         preload="metadata"
-                        onLoadedMetadata={handleLoadedMetadata}
-                        onLoadedData={handleLoadedData}
+                        onLoadedMetadata={
+                            handleLoadedMetadata
+                        }
                         onCanPlay={handleCanPlay}
-                        onStalled={handleStalled}
-                        onWaiting={handleWaiting}
                         onError={handleError}
                     />
                 )}
             </div>
 
-            {debug && (
-                <details className="upload-preview-panel__debug">
-                    <summary>
-                        Video diagnostics
-                    </summary>
+            {/* MOBILE-FRIENDLY DIAGNOSTICS */}
+            <div
+                style={{
+                    marginTop: "16px",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    background: "#f5f5f5",
+                    border: `2px solid ${getStatusColor()}`,
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    wordBreak: "break-word",
+                }}
+            >
+                <strong
+                    style={{
+                        color: getStatusColor(),
+                        fontSize: "15px",
+                    }}
+                >
+                    Video Diagnostic:{" "}
+                    {diagnostics.status}
+                </strong>
 
-                    <pre>
-                        {JSON.stringify(
-                            debug,
-                            null,
-                            2
-                        )}
-                    </pre>
-                </details>
-            )}
+                <p>
+                    <strong>Status:</strong>{" "}
+                    {diagnostics.message}
+                </p>
+
+                {diagnostics.error && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>Error code:</strong>{" "}
+                            {diagnostics.error.code}
+                        </p>
+
+                        <p>
+                            <strong>Error type:</strong>{" "}
+                            {diagnostics.error.codeName}
+                        </p>
+
+                        <p>
+                            <strong>Browser message:</strong>{" "}
+                            {diagnostics.error.browserMessage}
+                        </p>
+                    </>
+                )}
+
+                {diagnostics.diagnosis && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>Likely cause:</strong>{" "}
+                            {diagnostics.diagnosis.explanation}
+                        </p>
+
+                        <p>
+                            <strong>Recommended action:</strong>{" "}
+                            {
+                                diagnostics.diagnosis
+                                    .recommendedAction
+                            }
+                        </p>
+                    </>
+                )}
+
+                {diagnostics.file && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>File:</strong>{" "}
+                            {diagnostics.file.name}
+                        </p>
+
+                        <p>
+                            <strong>MIME type:</strong>{" "}
+                            {diagnostics.file.type}
+                        </p>
+
+                        <p>
+                            <strong>Size:</strong>{" "}
+                            {diagnostics.file.sizeMB} MB
+                        </p>
+                    </>
+                )}
+
+                {diagnostics.video && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>Video dimensions:</strong>{" "}
+                            {diagnostics.video.width} ×{" "}
+                            {diagnostics.video.height}
+                        </p>
+
+                        <p>
+                            <strong>Duration:</strong>{" "}
+                            {Number.isFinite(
+                                diagnostics.video.duration
+                            )
+                                ? `${diagnostics.video.duration.toFixed(
+                                      2
+                                  )} seconds`
+                                : "Unknown"}
+                        </p>
+
+                        <p>
+                            <strong>Ready state:</strong>{" "}
+                            {diagnostics.video.readyState}
+                        </p>
+
+                        <p>
+                            <strong>Network state:</strong>{" "}
+                            {diagnostics.video.networkState}
+                        </p>
+                    </>
+                )}
+
+                {diagnostics.browserSupport && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>Browser MP4 support:</strong>{" "}
+                            {diagnostics.browserSupport.canPlayMp4 ||
+                                "NO"}
+                        </p>
+
+                        <p>
+                            <strong>H.264 support:</strong>{" "}
+                            {diagnostics.browserSupport.canPlayH264 ||
+                                "NO"}
+                        </p>
+
+                        <p>
+                            <strong>HEVC/H.265 support:</strong>{" "}
+                            {diagnostics.browserSupport.canPlayHevc ||
+                                "NO"}
+                        </p>
+                    </>
+                )}
+
+                {diagnostics.device && (
+                    <>
+                        <hr />
+
+                        <p>
+                            <strong>Platform:</strong>{" "}
+                            {diagnostics.device.platform}
+                        </p>
+
+                        <p>
+                            <strong>Browser:</strong>{" "}
+                            {diagnostics.device.userAgent}
+                        </p>
+                    </>
+                )}
+            </div>
 
             <div className="upload-preview-panel__file-info">
                 <p className="upload-preview-panel__file-name">
@@ -352,10 +492,6 @@ const UploadPreviewPanel = ({ file }) => {
                               (1024 * 1024)
                           ).toFixed(1)} MB`
                         : ""}
-                </p>
-
-                <p className="upload-preview-panel__file-type">
-                    {file?.type || "Unknown MIME type"}
                 </p>
             </div>
 
