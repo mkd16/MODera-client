@@ -21,6 +21,9 @@ const UploadPreviewPanel = ({ file }) => {
     return (
         <div className="upload-preview-panel">
             <div className="upload-preview-panel__player">
+                {
+                    console.log({'preview url :: ': previewUrl, file: file})
+                }
                 {previewUrl && (
                     <video
                         src={previewUrl}
@@ -28,6 +31,8 @@ const UploadPreviewPanel = ({ file }) => {
                         controls
                         muted
                         playsInline
+                        onLoadedMetadata={()=>{console.log("VIDEO metadata loaded")}}
+                        onError={(e)=>{console.log('Video Error', e.currentTarget.error)}}
                     />
                 )}
             </div>
