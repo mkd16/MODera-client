@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 const UploadPreviewPanel = ({ file }) => {
     const [previewUrl, setPreviewUrl] = useState(null);
     const [debug, setDebug] = useState("");
-    setDebug(`type: ${file.type}, size: ${file.size}`);
 
     useEffect(() => {
         if (!file) {
@@ -13,6 +12,7 @@ const UploadPreviewPanel = ({ file }) => {
 
         const blobUrl = URL.createObjectURL(file);
         setPreviewUrl(blobUrl);
+        setDebug(`type: ${file.type}, size: ${file.size}`);
 
         // Cleanup: revoke the blob URL when file changes or component unmounts
         return () => {
