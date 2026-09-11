@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { fetchVideos } from "../api/listingApi";
 import toast from "react-hot-toast";
 
@@ -29,22 +30,32 @@ export default function Dashboard() {
             {/* Video grid */}
             {videos.length > 0 &&
                 <div className="yt-video-grid">
-                    {videos.map((video) => (
-                        <div key={video} className="yt-video-card">
-                            <div className={`yt-video-card-thumb ${isLoading ? 'skeleton' : ''}`}></div>
+                    {videos.map((video, index) => (
+                        <Link
+                            key={video?.id ?? index}
+                            to={video?.id ? `/watch?v=${video.id}` : "#"}
+                            className="yt-video-card"
+                            onClick={(e) => { if (!video?.id) e.preventDefault(); }}
+                        >
+                            <div className={`yt-video-card-thumb ${isLoading ? 'skeleton' : ''}`}>
+                                {
+                                    !isLoading && video?.thumbnail && <img src={video.thumbnail} alt={`${video?.title}`} />
+                                }
+                            </div>
                             <div className="yt-video-card-info">
                                 <div className="yt-video-card-title">
                                     {!isLoading ? video?.title : "Video title placeholder that spans two lines maximum"}
                                 </div>
                                 <div className="yt-video-card-meta">
-                                    {!isLoading ? video?.channel?.name : "Channel Name"} • {!isLoading ? (video?.size / 1000000).toFixed(1) + "M views" : "1.2M views"} • {!isLoading ? (new Date(video?.created_at)).toDateString() : "2 days ago"}
+                                    {!isLoading ? video?.channel?.name : "Channel Name"} • {!isLoading ? (video?.file_size / 1000000).toFixed(1) + "M views" : "1.2M views"} • {!isLoading ? (new Date(video?.created_at)).toDateString() : "2 days ago"}
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             }
-            {!videos.length &&
+            {
+                !videos.length &&
                 <div className="flex items-center justify-center h-full">
                     <div className="text-center">
                         <p className="text-lg font-medium">No videos uploaded</p>
@@ -52,6 +63,6 @@ export default function Dashboard() {
                     </div>
                 </div>
             }
-        </div>
+        </div >
     );
 }

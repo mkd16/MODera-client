@@ -1,7 +1,7 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientSideVideoUpload, completeUpload, getPresignedUploadUrl, multipartUpload, uploadVideo, uploadVideoToS3 } from "../../api/uploadApi";
+import { clientSideVideoUpload, completeUpload, getPresignedUploadUrl, multipartUpload, uploadVideo, uploadToS3 } from "../../api/uploadApi";
 import ThumbnailUpload from "./ThumbnailUpload";
 import toast from "react-hot-toast";
 import { uploadChunksInBatch } from "../../utils/uploadChunks";
@@ -13,11 +13,24 @@ const schema = z.object({
         .max(100, 'Title must be at most 100 characters long'),
     description: z.string(),
     visibility: z.enum(['public', 'private'], { message: 'Visibility is required' }),
-    // thumbnail: z.any(),
+    thumbnail: z.any()
+        .refine((file) => {
+            if (file && file.length > 0) {
+                const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+                return validTypes.includes(file[0].type);
+            }
+            return true;
+        }, "Thumbnail must be a valid image (JPEG, PNG, WEBP)")
+        .refine((file) => {
+            if (file && file.length > 0) {
+                return file[0].size <= 5 * 1024 * 1024; // 5MB
+            }
+            return true; // Not required
+        }, "Thumbnail must be less than 5MB")
 });
 
 const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, control, formState: { errors } } = useForm({
         mode: "onTouched",
         resolver: zodResolver(schema),
         defaultValues: {
@@ -58,7 +71,7 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
 
             if (res && res.success) {
                 if (res.data && res.data.videoId && res.data.presignedURL) {
-                    await uploadToS3(res.data);
+                    await uploadVideoOnS3(res.data);
                 } else {
                     setUploading(false);
                     toast.error("Something went wrong. Please try again.")
@@ -70,9 +83,9 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
         }
     }
 
-    const uploadToS3 = async (data) => {
+    const uploadVideoOnS3 = async (data) => {
         try {
-            await uploadVideoToS3(data.presignedURL, file)
+            await uploadToS3(data.presignedURL, file)
             const res = await completeUpload({ videoId: data.videoId })
 
             if (res && res.success) {
@@ -95,17 +108,34 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
                 size: file.size,
                 mimetype: file.type
             }
+
+            const thumbnailFile = data.thumbnail || null
             let uploadData = { ...data, fileData }
+            delete uploadData.thumbnail
+            if (thumbnailFile) {
+                uploadData.thumbnailData = {
+                    name: thumbnailFile.name,
+                    size: thumbnailFile.size,
+                    mimetype: thumbnailFile.type
+                }
+            }
 
             const res = await multipartUpload(uploadData)
 
             if (res && res.success) {
-                const { partSize, sessionId, videoId, totalParts } = res.data
+                const { partSize, sessionId, videoId, totalParts, thumbnailError } = res.data
+
+                // Thumbnail issues never block the video upload — just warn the user
+                if (thumbnailError) {
+                    toast.error(thumbnailError)
+                }
+
                 const uploadContext = {
                     partSize,
                     totalParts,
                     sessionId,
                     videoId,
+                    thumbnailFile
                 }
                 const uploaded = await createAndUploadChunks(uploadContext)
                 if (uploaded) {
@@ -120,7 +150,7 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
     }
 
     const createAndUploadChunks = async (uploadContext) => {
-        const { videoId, sessionId, totalParts, partSize } = uploadContext
+        const { videoId, sessionId, totalParts, partSize, thumbnailFile } = uploadContext
         for (let index = 1; index <= totalParts; index += 10) {
             const range = [...Array(Math.min(index + 10, totalParts + 1) - index).keys()].map(i => i + index)
             const data = { range, videoId, sessionId }
@@ -141,12 +171,24 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
                 await new Promise(resolve => setTimeout(resolve, 1000))          // add a timeout so that uploaded parts can be synced in s3 for list parts
             } else {
                 const res = await completeUpload({ sessionId, videoId });
-                if (res && res.success && res.data?.length <= 0) {
+                if (res && res.success && res.data?.status === "complete") {
                     incompleteUpload = false
-                    toast.success("File Uploaded Successfully !!")
+
+                    // Video is fully uploaded — only now is it safe to sign and use a thumbnail URL
+                    const { presignedThumbnailURL } = res.data
+                    if (thumbnailFile && presignedThumbnailURL) {
+                        try {
+                            await uploadToS3(presignedThumbnailURL, thumbnailFile)
+                            toast.success("Video and thumbnail uploaded successfully!")
+                        } catch (error) {
+                            toast.error("Video uploaded but thumbnail upload failed. You can add it later.")
+                        }
+                    } else {
+                        toast.success("Video uploaded successfully!!")
+                    }
                 } else {
                     incompleteUpload = true
-                    pendingUploads = res.data
+                    pendingUploads = res.data?.missingPartUrls ?? []
                     retry++;
                 }
             }
@@ -174,8 +216,6 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
                     <p className="form-error">{errors.description?.message}</p>
                 </div>
 
-                {/* <ThumbnailUpload /> */}
-
                 <div className="form-group">
                     <label className="form-label" htmlFor="visibility">Visibility<span className="form-label__required">*</span></label>
                     <select id="visibility" {...register('visibility')} className="form-input">
@@ -184,6 +224,18 @@ const UploadFormPanel = ({ setUploading, file, isUploading, closeModal }) => {
                     </select>
                     <p className="form-error">{errors.visibility?.message}</p>
                 </div>
+
+                <Controller
+                    name="thumbnail"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                        <ThumbnailUpload
+                            value={field.value}
+                            onChange={field.onChange}
+                            error={fieldState.error?.message}
+                        />
+                    )}
+                />
 
                 <div className="upload-form-panel__actions">
                     {/* <button type="button" className="btn btn--secondary">Save as draft</button> */}
