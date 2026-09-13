@@ -2,13 +2,19 @@ import { useEffect, useState } from "react";
 
 const UploadPreviewPanel = ({ file }) => {
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [previewFailed, setPreviewFailed] = useState(false);
 
+    // Creating an object URL is external-resource sync, not derived state: it must
+    // happen in an effect so the matching revoke can run on cleanup. The rule below
+    // can't express that pattern, so it's disabled deliberately rather than worked around.
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (!file) {
             setPreviewUrl(null);
             return;
         }
 
+        setPreviewFailed(false);
         const blobUrl = URL.createObjectURL(file);
         setPreviewUrl(blobUrl);
 
@@ -17,18 +23,27 @@ const UploadPreviewPanel = ({ file }) => {
             URL.revokeObjectURL(blobUrl);
         };
     }, [file]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     return (
         <div className="upload-preview-panel">
             <div className="upload-preview-panel__player">
-                {previewUrl && (
+                {previewUrl && !previewFailed && (
                     <video
                         src={previewUrl}
                         className="upload-preview-panel__video"
                         controls
                         muted
                         playsInline
+                        onError={() => setPreviewFailed(true)}
                     />
+                )}
+                {previewFailed && (
+                    // Preview is best-effort — some codecs (HEVC in particular) don't
+                    // decode in the browser. Never block the upload on it.
+                    <p className="upload-preview-panel__preview-error">
+                        Preview isn&apos;t available for this file. It will still upload normally.
+                    </p>
                 )}
             </div>
 

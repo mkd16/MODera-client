@@ -109,7 +109,9 @@ export default function OTPVerification() {
                 navigate("/")
             }
         } catch (error) {
-            if (error.status < 500) {
+            if (!error.status) {
+                toast.error("Cannot reach the server. Check your connection.")
+            } else if (error.status < 500) {
                 toast.error(error?.message || "Something went wrong. Please try again.")
             } else {
                 toast.error('Internal Server Error. Please try again later.')
