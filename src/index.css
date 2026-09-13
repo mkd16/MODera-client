@@ -982,6 +982,9 @@ body {
 .yt-user-avatar {
   width: 32px;
   height: 32px;
+  border: none;
+  padding: 0;
+  font-family: inherit;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   display: flex;
@@ -997,6 +1000,113 @@ body {
 
 .yt-user-avatar:hover {
   transform: scale(1.05);
+}
+
+/* ── Profile menu ───────────────────── */
+.yt-profile {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Anchored to .yt-profile, not the navbar, so it tracks the avatar at any width.
+   The navbar itself sits at z-index 100, so this only needs to beat its siblings. */
+.yt-profile-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  max-width: calc(100vw - 32px);
+  background: var(--bg-card);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 200;
+}
+
+.yt-profile-menu__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.yt-profile-menu__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: var(--text-base);
+  flex-shrink: 0;
+}
+
+/* min-width:0 lets a long name actually truncate instead of forcing the flex row wider */
+.yt-profile-menu__identity {
+  min-width: 0;
+}
+
+.yt-profile-menu__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-profile-menu__email {
+  font-size: var(--text-xxs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.yt-profile-menu__separator {
+  height: 1px;
+  background: var(--dash-border);
+}
+
+.yt-profile-menu__list {
+  list-style: none;
+  padding: 8px 0;
+}
+
+.yt-profile-menu__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--ease), color var(--ease);
+}
+
+.yt-profile-menu__item:hover {
+  background: var(--bg-hover);
+  color: var(--text-heading);
+}
+
+.yt-profile-menu__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.yt-profile-menu__item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 /* ── Sidebar ────────────────────────── */
@@ -1181,6 +1291,17 @@ body {
   aspect-ratio: 16 / 9;
   background: var(--bg-surface-2);
   position: relative;
+  overflow: hidden;
+}
+
+/* Without this the <img> renders at its natural size and pushes the 16/9 box out of
+   shape, so cards in the grid end up different heights. cover crops the overflow
+   instead, keeping every card identical whatever the uploader's aspect ratio was. */
+.yt-video-card-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .yt-video-card-info {
@@ -1600,6 +1721,18 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.upload-preview-panel__preview-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin: 0;
+  padding: 0 1rem;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .upload-preview-panel__file-name {

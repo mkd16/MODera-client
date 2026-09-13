@@ -1,19 +1,49 @@
-import { PlayIcon, MenuIcon, SearchIcon, VoiceSearchIcon, VideoCameraIcon, NotificationIcon, CloseIcon } from "../../components/icons/icons";
+import { PlayIcon, MenuIcon, SearchIcon, VoiceSearchIcon, VideoCameraIcon, NotificationIcon, CloseIcon, UserIcon, SettingsIcon, LogoutIcon } from "../../components/icons/icons";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { setAccessToken } from "../../utils/accessTokenManager";
 import { logout } from "../../api/authApi.js";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Spinner } from "../../components/ui/Spinner";
 import toast from "react-hot-toast";
 import { useGlobalLoader } from "../../context/LoaderContext.jsx";
 
 export default function Navbar({ onMenuClick }) {
     const navigate = useNavigate();
-    const { authStatus, setAuthStatus, setCurrentUser } = useAuth();
+    const { setAuthStatus, setCurrentUser, currentUser } = useAuth();
     const [loading, setLoading] = useState(false)
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
     const { globalLoader, setGlobalLoader } = useGlobalLoader();
+    const [openProfileMenu, setOpenProfileMenu] = useState(false);
+    const profileRef = useRef(null);
+
+    // Close the profile menu on an outside click or Escape. The listener only exists
+    // while the menu is open, and `contains` keeps a click on the avatar itself from
+    // closing it here — the avatar's own onClick already toggles it.
+    useEffect(() => {
+        if (!openProfileMenu) return;
+
+        const handlePointerDown = (e) => {
+            if (!profileRef.current?.contains(e.target)) {
+                setOpenProfileMenu(false);
+            }
+        };
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") setOpenProfileMenu(false);
+        };
+
+        document.addEventListener("pointerdown", handlePointerDown);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("pointerdown", handlePointerDown);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [openProfileMenu]);
+
+    const goTo = (path) => {
+        setOpenProfileMenu(false);
+        navigate(path);
+    };
 
     const logoutUser = async () => {
         try {
@@ -93,8 +123,67 @@ export default function Navbar({ onMenuClick }) {
                     <span className="yt-icon-btn-badge"></span>
                 </button>
 
-                <div className="yt-user-avatar" title="Your account" onClick={() => logoutUser()}>
-                    M
+                <div className="yt-profile" ref={profileRef}>
+                    <button
+                        type="button"
+                        className="yt-user-avatar"
+                        title="Your account"
+                        aria-haspopup="menu"
+                        aria-expanded={openProfileMenu}
+                        onClick={() => setOpenProfileMenu((prev) => !prev)}
+                    >
+                        {currentUser?.name?.slice(0, 1).toUpperCase() ?? 'U'}
+                    </button>
+
+                    {openProfileMenu && (
+                        <div className="yt-profile-menu" role="menu">
+                            <div className="yt-profile-menu__header">
+                                <div className="yt-profile-menu__avatar" aria-hidden="true">
+                                    {currentUser?.name?.slice(0, 1).toUpperCase() ?? 'U'}
+                                </div>
+                                <div className="yt-profile-menu__identity">
+                                    <p className="yt-profile-menu__name">{currentUser?.name ?? 'Your account'}</p>
+                                    {currentUser?.email && (
+                                        <p className="yt-profile-menu__email">{currentUser.email}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="yt-profile-menu__separator" />
+
+                            <ul className="yt-profile-menu__list">
+                                <li>
+                                    <button type="button" role="menuitem" className="yt-profile-menu__item" onClick={() => goTo('/profile')}>
+                                        <UserIcon />
+                                        <span>Profile</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" role="menuitem" className="yt-profile-menu__item" onClick={() => goTo('/channel')}>
+                                        <VideoCameraIcon />
+                                        <span>Your channel</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="button" role="menuitem" className="yt-profile-menu__item" onClick={() => goTo('/profile')}>
+                                        <SettingsIcon />
+                                        <span>Settings</span>
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div className="yt-profile-menu__separator" />
+
+                            <ul className="yt-profile-menu__list">
+                                <li>
+                                    <button type="button" role="menuitem" className="yt-profile-menu__item" onClick={() => { setOpenProfileMenu(false); logoutUser(); }}>
+                                        <LogoutIcon />
+                                        <span>Log out</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </div>
 

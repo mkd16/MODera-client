@@ -72,7 +72,9 @@ export default function Login() {
                 setPassword("")
             }
         } catch (error) {
-            if (error.status < 500) {
+            if (!error.status) {
+                toast.error('Cannot reach the server. Check your connection.')
+            } else if (error.status < 500) {
                 toast.error(error?.message || 'Something went wrong.')
             } else {
                 toast.error('Internal Server Error. Please try again later.')
@@ -118,7 +120,9 @@ export default function Login() {
                 }
             }
         } catch (error) {
-            if (error.status < 500) {
+            if (!error.status) {
+                toast.error('Cannot reach the server. Check your connection.')
+            } else if (error.status < 500) {
                 toast.error(error?.message || 'Something went wrong.')
             } else {
                 toast.error('Internal Server Error. Please try again later.')
